@@ -21,6 +21,3 @@ if (getApps().length === 0) {
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
-
-
-

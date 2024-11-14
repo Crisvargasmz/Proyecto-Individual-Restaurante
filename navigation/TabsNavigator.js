@@ -1,6 +1,8 @@
 // Importaciones de React Navigation para la navegación en la app
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+
 
 
 // Importaciones de iconos para usar en la navegación
@@ -9,7 +11,43 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 // Importaciones de Screens para la navegación
 import HomeScreen from "../src/components/HomeScreen"
+import Dishes from "../src/components/Dishes"
 import Statistics from "../src/components/Statistics"
+import DishDetail from "../src/components/DishDetail"
+
+const HomeMainNavigator = createStackNavigator();
+function StackHomeMain() {
+  return (
+    <HomeMainNavigator.Navigator initialRouteName="Tabs">
+      <HomeMainNavigator.Screen
+        name="Tabs"
+        component={Tabs}
+        options={{
+          headerShown: false,
+        }}
+      />
+          <HomeMainNavigator.Screen
+        name="DishDetail"
+        component={DishDetail}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+<HomeMainNavigator.Screen
+        name="Statistics"
+        component={Statistics}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      
+    </HomeMainNavigator.Navigator>
+  );
+}
+
+
 
 
 const Tab = createBottomTabNavigator();
@@ -28,7 +66,18 @@ function Tabs() {
                     headerShown: false,
                 }}
             />
-            <Tab.Screen
+                    <Tab.Screen
+                name='Dishes'
+                component={Dishes}
+                options={{
+                    tabBarLabel: 'Platillos',
+                    tabBarIcon: ({ color, size }) => (
+                        <FontAwesome name="cutlery" size={30} color={color} />
+                    ),
+                    headerShown: false,
+                }}
+            />
+                <Tab.Screen
                 name='Statistics'
                 component={Statistics}
                 options={{
@@ -39,6 +88,7 @@ function Tabs() {
                     headerShown: false,
                 }}
             />
+            
         </Tab.Navigator>
     );
 };
@@ -48,7 +98,7 @@ export default function Navegacion() {
    
     return (
       <NavigationContainer>
-        <Tabs/>
+       <StackHomeMain/>
       </NavigationContainer>
     );
   }

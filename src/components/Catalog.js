@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, TextInput, Image , Alert} from 'react-native';
-import { collection, addDoc, doc, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore"; 
+import { View, Text, FlatList, Button, TextInput, Image, Alert, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { collection, doc, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore"; 
 import { db } from '../../connection/firebaseconfig';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
-import { ImagePickerButton, PreviewImage } from "../../utils/Inputs";
-
+import { CustomTextInput2, CustomLargeTextInput,ImagePickerButton, CustomButton} from '../../utils/Inputs';
+import { useNavigation } from '@react-navigation/native';
 const Catalog = () => {
   const [dishes, setDishes] = useState([]);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [rating, setRating] = useState('');
-  const [image, setImage] = useState('');
-  const [category, setCategory] = useState('');
-  const [editingId, setEditingId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentDish, setCurrentDish] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'Dishes'), (snapshot) => {
@@ -26,144 +23,175 @@ const Catalog = () => {
     return unsubscribe;
   }, []);
 
+  const handleEdit = (item) => {
+    setCurrentDish(item);
+    setModalVisible(true);
+  };
+
+  const handleSaveChanges = async () => {
+    if (currentDish) {
+      const dishRef = doc(db, 'Dishes', currentDish.id);
+      await updateDoc(dishRef, {
+        ...currentDish
+      });
+      setModalVisible(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    await deleteDoc(doc(db, 'Dishes', id));
+    Alert.alert("Plato eliminado", "El plato ha sido eliminado correctamente.");
+  };
+
   const pickImage = async (setImageFunction, useCamera = false) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Se requieren permisos de cámara para tomar fotos.');
-      return;
+        Alert.alert('Permiso denegado', 'Se requieren permisos de cámara para tomar fotos.');
+        return;
     }
 
     let result;
     if (useCamera) {
-      result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+        result = await ImagePicker.launchCameraAsync({
+            aspect: [4, 3],
+            quality: 1,
+        });
     } else {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
+        result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            aspect: [4, 3],
+            quality: 1,
+        });
     }
 
     if (!result.canceled) {
-      setImageFunction(result.assets[0].uri);
+        setImageFunction(result.assets[0].uri);
     }
-  };
-
-  const handleSaveDish = async () => {
-    if (!name.trim()) {
-      Alert.alert("Validación", "El nombre del plato es obligatorio.");
-      return;
-    }
-    if (!description.trim()) {
-      Alert.alert("Validación", "La descripción del plato es obligatoria.");
-      return;
-    }
-    if (!price.trim() || isNaN(price) || parseFloat(price) <= 0) {
-      Alert.alert("Validación", "El precio debe ser un número mayor que 0.");
-      return;
-    }
-    if (!rating.trim() || isNaN(rating) || parseFloat(rating) < 1 || parseFloat(rating) > 5) {
-      Alert.alert("Validación", "La calificación debe ser un número entre 1 y 5.");
-      return;
-    }
-    if (!image.trim()) {
-      Alert.alert("Validación", "Debe seleccionar una imagen para el plato.");
-      return;
-    }
-    if (!category.trim()) {
-      Alert.alert("Validación", "La categoría del plato es obligatoria.");
-      return;
-    }
-
-    try {
-      if (editingId) {
-        const dishRef = doc(db, 'Dishes', editingId);
-        await updateDoc(dishRef, {
-          name,
-          description,
-          price: parseFloat(price),
-          rating: parseFloat(rating),
-          image,
-        });
-        setEditingId(null);
-      } else {
-        await addDoc(collection(db, 'Dishes'), {
-          name,
-          description,
-          price: parseFloat(price),
-          rating: parseFloat(rating),
-          image,
-          category,
-        });
-      }
-      setCategory('');
-      setImage('');
-      setRating('');
-      setName('');
-      setDescription('');
-      setPrice('');
-    } catch (error) {
-      console.error("Error saving dish: ", error);
-      Alert.alert("Error", "Hubo un problema al guardar el plato.");
-    }
-  };
+};
 
   const renderItem = ({ item }) => (
-    <View>
-      <Text>{item.name}</Text>
-      <Text>{item.description}</Text>
-      <Text>${item.price}</Text>
-      <Text>{item.rating}</Text>
-      <Text>{item.category}</Text>
-      <Image source={{ uri: item.image }} style={{ width: 100, height: 100 }} />
-      <Button title="Edit" onPress={() => handleEdit(item)} />
-      <Button title="Delete" onPress={() => handleDelete(item.id)} />
+    <View style={styles.itemContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('DishDetail', { dish: item })}>
+        <Image source={{ uri: item.image }} style={styles.image} />
+      </TouchableOpacity>
+      <Text style={styles.label}>Nombre: {item.name}</Text>
+      <Text style={styles.label}>Precio: C${item.price}</Text>
+      <Text style={styles.label}>Calificación: {item.rating}</Text>
+      <View style={styles.iconContainer}>
+        <Icon name="edit" size={30} color="blue" onPress={() => handleEdit(item)} />
+        <Icon name="delete" size={30} color="red" onPress={() => handleDelete(item.id)} />
+      </View>
     </View>
   );
 
-  const handleEdit = (item) => {
-    setName(item.name);
-    setDescription(item.description);
-    setPrice(item.price.toString());
-    setEditingId(item.id);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const dishRef = doc(db, 'Dishes', id);
-      await deleteDoc(dishRef);
-    } catch (error) {
-      console.error("Error deleting dish: ", error);
-    }
-  };
-
   return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <TextInput placeholder="Name" value={name} onChangeText={setName} />
-      <TextInput placeholder="Description" value={description} onChangeText={setDescription} />
-      <TextInput placeholder="Price" value={price} onChangeText={setPrice} keyboardType="numeric" />
-      <TextInput placeholder="Rating" value={rating} onChangeText={setRating} keyboardType="numeric" />
-      <ImagePickerButton
-        onPress={async () => {
-          const url = await pickImage(setImage);
-          if (url) {
-            setImage(url);
-          }
-        }}
-        iconName="upload"
-        buttonText="Subir Imagen"
+    <View style={styles.container}>
+      <FlatList
+        data={dishes}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        key={2}
+        columnWrapperStyle={styles.row}
       />
-      <PreviewImage uri={image} />
-      <TextInput placeholder="Category" value={category} onChangeText={setCategory} />
-      <Button title={editingId ? "Update Dish" : "Add Dish"} onPress={handleSaveDish} />
-      <FlatList data={dishes} renderItem={renderItem} keyExtractor={(item) => item.id} />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            {currentDish && (
+              <>
+                <Image source={{ uri: currentDish.image }} style={styles.modalImage} />
+                <CustomTextInput2 placeholder="Nombre" value={currentDish.name} onChangeText={(text) => setCurrentDish({...currentDish, name: text})} />
+                <CustomLargeTextInput placeholder="Descripción" value={currentDish.description} onChangeText={(text) => setCurrentDish({...currentDish, description: text})} />
+                <CustomTextInput2 placeholder="Precio" value={currentDish.price.toString()} onChangeText={(text) => setCurrentDish({...currentDish, price: text})} keyboardType="numeric" />
+                <CustomTextInput2 placeholder="Calificación" value={currentDish.rating.toString()} onChangeText={(text) => setCurrentDish({...currentDish, rating: text})} keyboardType="numeric" />
+                <CustomTextInput2 placeholder="Categoría" value={currentDish.category} onChangeText={(text) => setCurrentDish({...currentDish, category: text})} />
+                <CustomTextInput2 placeholder="Cantidad" value={currentDish.quantity.toString()} onChangeText={(text) => setCurrentDish({...currentDish, quantity: text})} keyboardType="numeric" />
+                <ImagePickerButton title="Cambiar Imagen" onPress={pickImage} iconName="camera" buttonText="Seleccionar Imagen" />
+                <CustomButton style={styles.button} title="Guardar Cambios" onPress={handleSaveChanges} />
+                <CustomButton style={styles.button} title="Cerrar" onPress={() => setModalVisible(false)} />
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 10,
+  },
+  itemContainer: {
+    flex: 1,
+    marginBottom: 15,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    margin: 5,
+  },
+  image: {
+    width: 180,
+    height: 180,
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+    fontSize: 14,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  button: {
+    marginTop: 10,
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: 100, // Adjust the width as needed
+  },
+  row: {
+    flex: 1,
+    justifyContent: 'space-around',
+  },
+});
 
 export default Catalog;

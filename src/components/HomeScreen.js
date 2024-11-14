@@ -1,26 +1,37 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Catalog from './Catalog';
 
 const HomeScreen = () => {
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Bienvenido al catalogo de platillos</Text>
+      </View>
+      <Catalog />
+    </View>
+  );
+};
 
-    return (
-        <View style={styles.container}>
-          <Catalog/>
-          </View>
-      );
-    };
-    
-    const styles = StyleSheet.create({
-      container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        height: '100%', 
-        width: '100%',
-        marginTop: 50,
-      },
-    });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    marginTop: 30,
+  },
+  header: {
+    height: 60,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+});
 
-  export default HomeScreen;
+export default HomeScreen;
   

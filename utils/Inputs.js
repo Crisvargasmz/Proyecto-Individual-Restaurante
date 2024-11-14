@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { TextInput, TouchableOpacity, StyleSheet, View, Text, Image, Modal, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
-// Componente personalizado para el input del selector de fecha
-export const CustomPickerInput = ({ value, onPress, placeholder }) => (
-    <TouchableOpacity onPress={onPress} style={styles.inputContainer}>
-      <Text style={styles.inputText}>{value ? value : placeholder}</Text>
-    </TouchableOpacity>
-  );
   
   // Componente personalizado para botones que activan la selección de imágenes
   export const ImagePickerButton = ({ onPress, iconName, buttonText }) => {
@@ -19,10 +12,75 @@ export const CustomPickerInput = ({ value, onPress, placeholder }) => (
     );
   };
 
+    // Componente personalizado para botones que activan la selección de imágenes
+    export const ImagePickerButton2 = ({ onPress, iconName, buttonText }) => {
+      return (
+        <TouchableOpacity style={styles.imageButton2} onPress={onPress}>
+          <Icon name={iconName} size={20} color="blue" style={styles.icon2} />
+          <Text style={styles.imageButtonText2}>{buttonText}</Text>
+        </TouchableOpacity>
+      );
+    };
+  
+
   // Componente para mostrar una imagen previa seleccionada
 export const PreviewImage = ({ uri }) => (
     uri ? <Image source={{ uri }} style={styles.previewImage} /> : null
   );
+
+  // Componente personalizado para TextInput
+  export const CustomTextInput = ({ value, onChangeText, placeholder, secureTextEntry, keyboardType, style }) => {
+    return (
+        <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            secureTextEntry={secureTextEntry}
+            keyboardType={keyboardType}
+            style={[styles.customInput, style]} // Permite estilos personalizados
+        />
+    );
+  };
+
+    // Componente personalizado para TextInput
+    export const CustomTextInput2 = ({ value, onChangeText, placeholder, secureTextEntry, keyboardType, style }) => {
+      return (
+          <TextInput
+              value={value}
+              onChangeText={onChangeText}
+              placeholder={placeholder}
+              secureTextEntry={secureTextEntry}
+              keyboardType={keyboardType}
+              style={[styles.customInput2, style]} // Permite estilos personalizados
+          />
+      );
+    };
+  
+
+  // Componente personalizado para TextInput grande para descripciones
+  export const CustomLargeTextInput = ({ value, onChangeText, placeholder, secureTextEntry, keyboardType, style }) => {
+    return (
+        <TextInput
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            secureTextEntry={secureTextEntry}
+            keyboardType={keyboardType}
+            multiline={true} // Permite múltiples líneas
+            numberOfLines={4} // Número de líneas inicial
+            style={[styles.customLargeInput, style]} // Estilos personalizados
+        />
+    );
+  };
+
+  // Componente personalizado para botones
+  export const CustomButton = ({ onPress, title, style, textStyle }) => {
+    return (
+        <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
+            <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+        </TouchableOpacity>
+    );
+  };
 
   // Estilos para los componentes
 const styles = StyleSheet.create({
@@ -35,131 +93,97 @@ const styles = StyleSheet.create({
   
   
     },
-    inputContainer2:{
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderColor: '#ccc',
-      marginBottom: 25,
-      padding: 10,
-    },
-    input2: {
-      flex: 1,
-      height: 40,
-      paddingHorizontal: 10,
-      color: '#fff',
-    },
-    editButton2: {
-      marginLeft: 10,
-      padding: 10,
-    },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderColor: '#fff',
-      marginBottom: 25,
-      width: '100%',
-      height: 40,
-      justifyContent: 'center', // Centrar el texto
-    },
-    input: {
-      flex: 1,
-      height: '100%',
-      paddingHorizontal: 10,
-      color: '#fff',
-    },
-    inputText: {
-      color: '#fff', // Color del texto para el CustomPickerInput
-      flex: 1,
-      textAlign: 'center', // Centrar el texto
-    },
-    eyeIcon: {
-      padding: 10,
-    },
     imageButton: {
-      height: 40,
+      height: 50,
       backgroundColor: '#007AFF',
       borderRadius: 5,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 10,
+      marginBottom: 3,
       flexDirection: 'row',
       paddingHorizontal: 10,
-      width: 200,
+      width: 300,
+    },
+    imageButton2: {
+      height: 50,
+      backgroundColor: '#007AFF',
+      borderRadius: 5,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 20,
+      flexDirection: 'row',
+      paddingHorizontal: 10,
+      width: 400,
     },
     imageButtonText: {
       color: '#fff',
       fontWeight: 'bold',
       marginLeft: 5,
     },
-    previewImage: {
-      width: 100,
-      height: 100,
-      marginBottom: 10,
-      borderRadius: 5,
-    },
-    pickerContainer: {
-      width: '100%',
-      marginBottom: 25,
-    },
-    pickerInput: {
-      padding: 15,
-      borderWidth: 1,
-      borderColor: '#fff', // Cambiado a blanco para coincidir con otros inputs
-      borderRadius: 5,
-      backgroundColor: '#107acc', // Color de fondo consistente
-    },
-    pickerText: {
-      color: '#fff', // Color del texto para que coincida con otros inputs
-      textAlign: 'center', // Centrar el texto
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContent: {
-      marginTop: 350, 
-      width: '100%',
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 20,
-    },
-    modalItem: {
-      padding: 15,
-      borderBottomColor: 'gray',
-    },
-    modalItemText: {
-      color: 'black',
-    },
-    closeButton: {
-      marginTop: 10,
-      padding: 10,
-      backgroundColor: '#007AFF',
-      borderRadius: 5,
-      alignItems: 'center',
-    },
-    closeButtonText: {
-      color: 'white',
+    imageButtonText2: {
+      color: '#fff',
       fontWeight: 'bold',
+      marginLeft: 5,
     },
-    inputContainerLarge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderColor: '#fff', // Manteniendo el color blanco para el borde
-      marginBottom: 25,
-      width: '100%',
-      justifyContent: 'center', // Centrar el texto
+    previewImage: {
+      width: 200,
+      height: 200,
+      marginBottom: 20,
+      marginTop: -50,
+      borderRadius: 5,
+      alignSelf: 'center',
     },
-    inputLarge: {
-      flex: 1,
-      height: 100, // Altura mayor para más texto
+    customInput: {
+      height: 50,
+      borderColor: 'black',
+      borderWidth: 1,
+      marginBottom: 20,
       paddingHorizontal: 10,
-      color: '#fff', // Manteniendo el color blanco para el texto
-      textAlignVertical: 'top', // Alinea el texto en la parte superior
+      fontSize: 14,
+      borderRadius: 5,
+      fontWeight: 'bold',
+      color: 'black', // Color del texto
+      backgroundColor: '#FFF', // Fondo blanco para mayor legibilidad
     },
+    customInput2: {
+      height: 40,
+      width: 310,
+      borderColor: 'black',
+      borderWidth: 1,
+      marginBottom: 20,
+      paddingHorizontal: 10,
+      borderRadius: 5,
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: 'black', // Color del texto
+      backgroundColor: '#FFF', // Fondo blanco para mayor legibilidad
+    },
+    customLargeInput: {
+        height: 100, // Altura mayor para más texto
+        borderColor: 'black',
+        borderWidth: 1,
+        marginBottom: 20,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: 'black', // Color del texto
+        backgroundColor: '#FFF', // Fondo blanco para mayor legibilidad
+        textAlignVertical: 'top', // Alinea el texto en la parte superior
+    },
+    button: {
+        height: 50,
+        width: 300,
+        backgroundColor: '#007AFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 5,
+        paddingHorizontal: 20
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold'
+    }
   });
   
   
