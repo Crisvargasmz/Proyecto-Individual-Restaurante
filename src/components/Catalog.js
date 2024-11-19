@@ -11,6 +11,7 @@ const Catalog = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentDish, setCurrentDish] = useState(null);
   const navigation = useNavigation();
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'Dishes'), (snapshot) => {
@@ -113,7 +114,10 @@ const Catalog = () => {
                 <CustomTextInput2 placeholder="Calificación" value={currentDish.rating.toString()} onChangeText={(text) => setCurrentDish({...currentDish, rating: text})} keyboardType="numeric" />
                 <CustomTextInput2 placeholder="Categoría" value={currentDish.category} onChangeText={(text) => setCurrentDish({...currentDish, category: text})} />
                 <CustomTextInput2 placeholder="Cantidad" value={currentDish.quantity.toString()} onChangeText={(text) => setCurrentDish({...currentDish, quantity: text})} keyboardType="numeric" />
-                <ImagePickerButton title="Cambiar Imagen" onPress={pickImage} iconName="camera" buttonText="Seleccionar Imagen" />
+                <ImagePickerButton title="Cambiar Imagen"
+                  onPress={() => pickImage((newUri) => setCurrentDish({ ...currentDish, image: newUri }), false)}
+                  iconName="camera"
+                  buttonText="Seleccionar Imagen" />
                 <CustomButton style={styles.button} title="Guardar Cambios" onPress={handleSaveChanges} />
                 <CustomButton style={styles.button} title="Cerrar" onPress={() => setModalVisible(false)} />
               </>

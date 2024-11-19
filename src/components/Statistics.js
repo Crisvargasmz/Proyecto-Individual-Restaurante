@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Button } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
-import { collection, getDocs, query, onSnapshot } from 'firebase/firestore';
+import { StyleSheet, View, Button, ScrollView } from 'react-native';
+import { PieChart, BarChart } from 'react-native-chart-kit';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../connection/firebaseconfig';
 import { captureRef } from 'react-native-view-shot';
 import { jsPDF } from 'jspdf';
@@ -18,147 +18,204 @@ export default function Statistics() {
     labels: [],
     datasets: [{ data: [] }],
   });
+  const [dataCategorias, setDataCategorias] = useState({
+    labels: [],
+    datasets: [{ data: [] }],
+  });
 
-  
-  useEffect(() => {
-    // Suponiendo que setDataProyectos se llama cuando los datos están listos
-    if (dataProyectos.datasets[0].data.length > 0) {
-      setIsChartReady(true);
-    }
-  }, [dataProyectos]);
-
-  const chartRef = useRef();
-
+  const pieChartRef = useRef();
+  const barChartRef = useRef();
   const [isChartReady, setIsChartReady] = useState(false);
-
   const [coloresEtiquetas, setColoresEtiquetas] = useState({});
-
-  const generarPDF = async () => {
-    if (!isChartReady) {
-      alert('El gráfico aún no está listo para ser capturado.');
-      return;
-    }
-
-    try {
-      const uri = await captureRef(chartRef, {
-        format: 'png',  // Formato de imagen
-        quality: 0.8,    // Calidad de la imagen (0.0 a 1.0, siendo 1.0 la más alta)
-  
-      });
-      
-      const doc = new jsPDF();
-      doc.text("Reporte de platillos precio", 10, 10);
-
-      const chartImage = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      
-      // Si no quieres trabajar con base64, puedes convertir el archivo a binario o usar el archivo tal cual
-      doc.addImage(chartImage, "PNG", 10, 20, 150, 110);
-      
-
-      dataProyectos.labels.forEach((label, index) => {
-        const value = dataProyectos.datasets[0].data[index];
-        doc.text(`${label}: ${value}`, 10, 140 + index * 10);
-      });
-
-      const pdfBase64 = doc.output('datauristring').split(',')[1];
-      const fileUri = `${FileSystem.documentDirectory}reporte_proyectos.pdf`;
-
-      await FileSystem.writeAsStringAsync(fileUri, pdfBase64, {
-        encoding: FileSystem.EncodingType.Base64
-      });
-
-      await Sharing.shareAsync(fileUri);
-    } catch (error) {
-      console.error("Error al generar o compartir el PDF: ", error);
-    }
-  };
-
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'Dishes'), (snapshot) => {
       const conteoPlatillosPrecio = {};
+      const conteoCategorias = {};
       let nuevosColores = {...coloresEtiquetas};
 
       snapshot.forEach((doc) => {
         const datosBD = doc.data();
-        const { name, price } = datosBD;
+        const { name, price, category, quantity } = datosBD;
 
+        // Para el gráfico de precios
         if (name) {
-          if (!conteoPlatillosPrecio[name]) {
-            conteoPlatillosPrecio[name] = price;
-            // Asignar color de la paleta si es necesario
-            if (!nuevosColores[name]) {
-              let colorIndex = Object.keys(nuevosColores).length % PALETA_COLORES.length;
-              nuevosColores[name] = PALETA_COLORES[colorIndex];
-            }
-          } else {
-            conteoPlatillosPrecio[name] += price;
+          conteoPlatillosPrecio[name] = (conteoPlatillosPrecio[name] || 0) + price;
+          if (!nuevosColores[name]) {
+            let colorIndex = Object.keys(nuevosColores).length % PALETA_COLORES.length;
+            nuevosColores[name] = PALETA_COLORES[colorIndex];
           }
+        }
+
+        // Para el gráfico de categorías
+        if (category) {
+          conteoCategorias[category] = (conteoCategorias[category] || 0) + quantity;
         }
       });
 
       setColoresEtiquetas(nuevosColores);
-
-      const labels = Object.keys(conteoPlatillosPrecio);
-      const dataCounts = Object.values(conteoPlatillosPrecio);
-
       setDataProyectos({
-        labels,
-        datasets: [{ data: dataCounts }],
+        labels: Object.keys(conteoPlatillosPrecio),
+        datasets: [{ data: Object.values(conteoPlatillosPrecio) }],
       });
+      setDataCategorias({
+        labels: Object.keys(conteoCategorias),
+        datasets: [{ data: Object.values(conteoCategorias) }],
+      });
+
+      // Asegurarse de que los datos están completamente cargados antes de permitir la captura
+      if (snapshot.size > 0) { // Asegúrate de que hay datos antes de marcar como listo
+        setIsChartReady(true);
+      }
     });
 
-    return () => unsubscribe(); // Limpiar el listener cuando el componente se desmonte
+    return () => unsubscribe();
   }, []);
 
+  // Además, puedes agregar un efecto para resetear isChartReady cuando los componentes se desmonten o antes de una nueva carga de datos
+  useEffect(() => {
+    return () => {
+      setIsChartReady(false); // Resetear cuando el componente se desmonte
+    };
+  }, []);
+
+  const generarPDFPieChart = async () => {
+    if (!isChartReady) {
+      alert('El gráfico de pastel aún no está listo para ser capturado.');
+      return;
+    }
+
+    try {
+      const uri = await captureRef(pieChartRef, {
+        format: 'png',
+        quality: 0.8,
+      });
+
+      const doc = new jsPDF();
+      doc.text("Reporte de Platillos por Precio", 10, 10);
+      const chartImage = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      doc.addImage(chartImage, "PNG", 10, 20, 180, 100);
+
+      // Agregar datos debajo del gráfico
+      let yPos = 130;
+      dataProyectos.labels.forEach((label, index) => {
+        doc.text(`${label}: ${dataProyectos.datasets[0].data[index]}`, 10, yPos);
+        yPos += 10;
+      });
+
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const fileUri = `${FileSystem.documentDirectory}reporte_pie_chart.pdf`;
+      await FileSystem.writeAsStringAsync(fileUri, pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      console.error("Error al generar o compartir el PDF del gráfico de pastel: ", error);
+    }
+  };
+
+  const generarPDFBarChart = async () => {
+    if (!isChartReady) {
+      alert('El gráfico de barras aún no está listo para ser capturado.');
+      return;
+    }
+
+    try {
+      const uri = await captureRef(barChartRef, {
+        format: 'png',
+        quality: 0.8,
+      });
+
+      const doc = new jsPDF();
+      doc.text("Reporte de Categorías de Platillos", 10, 10);
+      const chartImage = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      doc.addImage(chartImage, "PNG", 10, 20, 180, 100);
+
+      // Agregar datos debajo del gráfico
+      let yPos = 130;
+      dataCategorias.labels.forEach((label, index) => {
+        doc.text(`${label}: ${dataCategorias.datasets[0].data[index]}`, 10, yPos);
+        yPos += 10;
+      });
+
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const fileUri = `${FileSystem.documentDirectory}reporte_bar_chart.pdf`;
+      await FileSystem.writeAsStringAsync(fileUri, pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
+      await Sharing.shareAsync(fileUri);
+    } catch (error) {
+      console.error("Error al generar o compartir el PDF del gráfico de barras: ", error);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-    <View ref={chartRef} collapsable={false} style={styles.chartContainer}>
-  <PieChart
-    data={dataProyectos.datasets[0].data.map((value, index) => ({
-      name: dataProyectos.labels[index],
-      population: value,
-      color: coloresEtiquetas[dataProyectos.labels[index]], 
-      legendFontColor: "#000",
-      legendFontSize: 15,
-    }))}
-    width={300}
-    height={220}
-    chartConfig={{
-      backgroundColor: "#fff",
-      backgroundGradientFrom: "#fff",
-      backgroundGradientTo: "#fff",
-      decimalPlaces: 2,
-      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-      labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-      style: {
-        borderRadius: 16,
-      },
-    }}
-    accessor="population"
-    backgroundColor="transparent"
-    paddingLeft="15"
-    absolute
-  />
+    <ScrollView style={styles.container}>
+      <View style={styles.chartContainer2}>
+        <View ref={pieChartRef} collapsable={false}>
+          <PieChart
+            data={dataProyectos.labels.map((label, index) => ({
+              name: label,
+              population: dataProyectos.datasets[0].data[index],
+              color: coloresEtiquetas[label],
+              legendFontColor: "#000",
+              legendFontSize: 15,
+            }))}
+            width={300}
+            height={220}
+            chartConfig={{
+              backgroundColor: "#fff",
+              backgroundGradientFrom: "#fff",
+              backgroundGradientTo: "#fff",
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+          />
+        </View>
+        <Button title="Generar y Compartir PDF del Gráfico de Pastel" onPress={generarPDFPieChart} />
       </View>
-      <Button title="Generar y Compartir PDF" onPress={generarPDF} />
-    </View>
+      <View style={styles.chartContainer}>
+        <View ref={barChartRef} collapsable={false}>
+          <BarChart
+            data={dataCategorias}
+            width={300}
+            height={220}
+            chartConfig={{
+              backgroundColor: "#fff",
+              backgroundGradientFrom: "#fff",
+              backgroundGradientTo: "#fff",
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            }}
+            fromZero
+          />
+        </View>
+        <Button title="Generar y Compartir PDF del Gráfico de Barras" onPress={generarPDFBarChart} />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
   },
   chartContainer: {
-    width: 300,
-    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#fff',
+    marginBottom: 100,
+  },
+  chartContainer2: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginTop: 100,
   },
 });

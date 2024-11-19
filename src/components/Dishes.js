@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, Button, Alert } from 'react-native';
+import { View, TextInput, StyleSheet, Text, Button, Alert,ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePickerButton2, PreviewImage,CustomTextInput,CustomLargeTextInput,CustomButton } from '../../utils/Inputs';
 import { db } from '../../connection/firebaseconfig';
@@ -79,6 +79,7 @@ const Dishes = ({ navigation }) => {
             ) : (
                 <Text style={styles.noImageText}>No hay imagen disponible</Text>
             )}
+            <ScrollView>
             <CustomTextInput placeholder="Nombre" value={name} onChangeText={setName} />
             <CustomLargeTextInput placeholder="Descripción" value={description} onChangeText={setDescription} />
             <CustomTextInput placeholder="Precio" value={price} onChangeText={setPrice} keyboardType="numeric" />
@@ -87,6 +88,7 @@ const Dishes = ({ navigation }) => {
             <CustomTextInput placeholder="Cantidad" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
             <ImagePickerButton2 onPress={() => pickImage(setImage)} iconName="camera" buttonText="Seleccionar Imagen" />
             <CustomButton style={styles.button} title="Guardar Plato" onPress={saveDish} color="#32CD32" />
+            </ScrollView>
         </View>
     );
 };
@@ -98,7 +100,7 @@ const styles = StyleSheet.create({
         marginTop: 100,
     },
     button: {
-        width: 400,
+        width: 370,
     },
     image: {
         width: 200,

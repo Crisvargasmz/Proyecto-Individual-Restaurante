@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
       marginBottom: 20,
       flexDirection: 'row',
       paddingHorizontal: 10,
-      width: 400,
+      width: 370,
     },
     imageButtonText: {
       color: '#fff',
