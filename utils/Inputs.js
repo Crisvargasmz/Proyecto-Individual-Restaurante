@@ -73,6 +73,22 @@ export const PreviewImage = ({ uri }) => (
     );
   };
 
+    // Componente personalizado para TextInput grande para descripciones
+    export const CustomLargeTextInput2 = ({ value, onChangeText, placeholder, secureTextEntry, keyboardType, style }) => {
+      return (
+          <TextInput
+              value={value}
+              onChangeText={onChangeText}
+              placeholder={placeholder}
+              secureTextEntry={secureTextEntry}
+              keyboardType={keyboardType}
+              multiline={true} // Permite múltiples líneas
+              numberOfLines={4} // Número de líneas inicial
+              style={[styles.customLargeInput2, style]} // Estilos personalizados
+          />
+      );
+    };
+
   // Componente personalizado para botones
   export const CustomButton = ({ onPress, title, style, textStyle }) => {
     return (
@@ -158,10 +174,24 @@ const styles = StyleSheet.create({
       color: 'black', // Color del texto
       backgroundColor: '#FFF', // Fondo blanco para mayor legibilidad
     },
+    customLargeInput2: {
+      height: 100, // Altura mayor para más texto
+      borderColor: 'black',
+      borderWidth: 1,
+      marginBottom: 20,
+      paddingHorizontal: 10,
+      borderRadius: 5,
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: 'black', // Color del texto
+      backgroundColor: '#FFF', // Fondo blanco para mayor legibilidad
+      textAlignVertical: 'top', // Alinea el texto en la parte superior
+  },
     customLargeInput: {
         height: 100, // Altura mayor para más texto
         borderColor: 'black',
         borderWidth: 1,
+        width: 310,
         marginBottom: 20,
         paddingHorizontal: 10,
         borderRadius: 5,

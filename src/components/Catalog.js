@@ -11,7 +11,6 @@ const Catalog = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentDish, setCurrentDish] = useState(null);
   const navigation = useNavigation();
-  const [image, setImage] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'Dishes'), (snapshot) => {
@@ -24,11 +23,15 @@ const Catalog = () => {
     return unsubscribe;
   }, []);
 
+  //item de que se manda a llamar al flatlist , y con el  keyExtractor para extraer
+  // los datos y poderlos ocupar en el modal y se mande a llamar.
+
   const handleEdit = (item) => {
     setCurrentDish(item);
     setModalVisible(true);
   };
 
+  // funciones para actualizar y eliminar los registros.
   const handleSaveChanges = async () => {
     if (currentDish) {
       const dishRef = doc(db, 'Dishes', currentDish.id);
@@ -36,6 +39,7 @@ const Catalog = () => {
         ...currentDish
       });
       setModalVisible(false);
+      Alert.alert('Se actualizo correctamente el platillo');
     }
   };
 
@@ -44,6 +48,7 @@ const Catalog = () => {
     Alert.alert("Plato eliminado", "El plato ha sido eliminado correctamente.");
   };
 
+  // funcion para agregar imagen 
   const pickImage = async (setImageFunction, useCamera = false) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
@@ -70,6 +75,8 @@ const Catalog = () => {
     }
 };
 
+//rendereiza los datos en el catalogo para poder actualizarlos.
+
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <TouchableOpacity onPress={() => navigation.navigate('DishDetail', { dish: item })}>
@@ -85,6 +92,9 @@ const Catalog = () => {
     </View>
   );
 
+  //retorna la lista en el contenedor o tarjeta donde se muestran los datos.
+//tambien el esta el modal para que se muestra los datos que se renderizan para poder mandar
+//a llamar el renderizado que esta en la linea 77
   return (
     <View style={styles.container}>
       <FlatList
@@ -95,6 +105,7 @@ const Catalog = () => {
         key={2}
         columnWrapperStyle={styles.row}
       />
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -146,8 +157,8 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   image: {
-    width: 180,
-    height: 180,
+    width: 150,
+    height: 150,
     marginBottom: 10,
     borderRadius: 10,
   },

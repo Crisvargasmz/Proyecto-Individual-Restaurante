@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, Text, Button, Alert,ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ImagePickerButton2, PreviewImage,CustomTextInput,CustomLargeTextInput,CustomButton } from '../../utils/Inputs';
+import { ImagePickerButton2, PreviewImage,CustomTextInput,CustomLargeTextInput2,CustomButton } from '../../utils/Inputs';
 import { db } from '../../connection/firebaseconfig';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -81,7 +81,7 @@ const Dishes = ({ navigation }) => {
             )}
             <ScrollView>
             <CustomTextInput placeholder="Nombre" value={name} onChangeText={setName} />
-            <CustomLargeTextInput placeholder="Descripción" value={description} onChangeText={setDescription} />
+            <CustomLargeTextInput2 placeholder="Descripción" value={description} onChangeText={setDescription} />
             <CustomTextInput placeholder="Precio" value={price} onChangeText={setPrice} keyboardType="numeric" />
             <CustomTextInput placeholder="Calificación" value={rating} onChangeText={setRating} keyboardType="numeric" />
             <CustomTextInput placeholder="Categoría" value={category} onChangeText={setCategory} />
